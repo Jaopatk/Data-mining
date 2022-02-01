@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?><process version="9.10.001">
+  <context>
+    <input/>
+    <output/>
+    <macros/>
+  </context>
+  <operator activated="true" class="process" compatibility="9.10.001" expanded="true" name="Process">
+    <parameter key="logverbosity" value="init"/>
+    <parameter key="random_seed" value="2001"/>
+    <parameter key="send_mail" value="never"/>
+    <parameter key="notification_email" value=""/>
+    <parameter key="process_duration_for_mail" value="30"/>
+    <parameter key="encoding" value="SYSTEM"/>
+    <process expanded="true">
+      <operator activated="true" class="select_subprocess" compatibility="9.10.001" expanded="true" height="103" name="Data Preprocessing" width="90" x="45" y="34">
+        <parameter key="select_which" value="1"/>
+        <process expanded="true">
+          <operator activated="true" class="retrieve" compatibility="9.10.001" expanded="true" height="68" name="Retrieve Titanic Training (2)" width="90" x="45" y="34">
+            <parameter key="repository_entry" value="//Samples/data/Titanic Training"/>
+          </operator>
+          <operator activated="true" class="numerical_to_binominal" compatibility="9.10.001" expanded="true" height="82" name="Numerical to Binominal" width="90" x="179" y="34">
+            <parameter key="attribute_filter_type" value="single"/>
+            <parameter key="attribute" value="No of Siblings or Spouses on Board"/>
+            <parameter key="attributes" value=""/>
+            <parameter key="use_except_expression" value="false"/>
+            <parameter key="value_type" value="numeric"/>
+            <parameter key="use_value_type_exception" value="false"/>
+            <parameter key="except_value_type" value="real"/>
+            <parameter key="block_type" value="value_series"/>
+            <parameter key="use_block_type_exception" value="false"/>
+            <parameter key="except_block_type" value="value_series_end"/>
+            <parameter key="invert_selection" value="false"/>
+            <parameter key="include_special_attributes" value="false"/>
+            <parameter key="min" value="0.0"/>
+            <parameter key="max" value="0.0"/>
+          </operator>
+          <operator activated="true" class="numerical_to_binominal" compatibility="9.10.001" expanded="true" height="82" name="Numerical to Binominal (2)" width="90" x="380" y="34">
+            <parameter key="attribute_filter_type" value="single"/>
+            <parameter key="attribute" value="No of Parents or Children on Board"/>
+            <parameter key="attributes" value=""/>
+            <parameter key="use_except_expression" value="false"/>
+            <parameter key="value_type" value="numeric"/>
+            <parameter key="use_value_type_exception" value="false"/>
+            <parameter key="except_value_type" value="real"/>
+            <parameter key="block_type" value="value_series"/>
+            <parameter key="use_block_type_exception" value="false"/>
+            <parameter key="except_block_type" value="value_series_end"/>
+            <parameter key="invert_selection" value="false"/>
+            <parameter key="include_special_attributes" value="false"/>
+            <parameter key="min" value="0.0"/>
+            <parameter key="max" value="2.0"/>
+          </operator>
+          <operator activated="true" class="split_data" compatibility="9.10.001" expanded="true" height="103" name="Split Data (3)" width="90" x="581" y="34">
+            <enumeration key="partitions">
+              <parameter key="ratio" value="0.7"/>
+              <parameter key="ratio" value="0.3"/>
+            </enumeration>
+            <parameter key="sampling_type" value="automatic"/>
+            <parameter key="use_local_random_seed" value="false"/>
+            <parameter key="local_random_seed" value="1992"/>
+          </operator>
+          <connect from_op="Retrieve Titanic Training (2)" from_port="output" to_op="Numerical to Binominal" to_port="example set input"/>
+          <connect from_op="Numerical to Binominal" from_port="example set output" to_op="Numerical to Binominal (2)" to_port="example set input"/>
+          <connect from_op="Numerical to Binominal (2)" from_port="example set output" to_op="Split Data (3)" to_port="example set"/>
+          <connect from_op="Split Data (3)" from_port="partition 1" to_port="output 1"/>
+          <connect from_op="Split Data (3)" from_port="partition 2" to_port="output 2"/>
+          <portSpacing port="source_input 1" spacing="0"/>
+          <portSpacing port="sink_output 1" spacing="0"/>
+          <portSpacing port="sink_output 2" spacing="0"/>
+          <portSpacing port="sink_output 3" spacing="0"/>
+          <description align="left" color="orange" colored="true" height="52" resized="false" width="107" x="565" y="154">0.7 for training&lt;br/&gt;0.3 for testing</description>
+          <description align="left" color="yellow" colored="false" height="70" resized="true" width="188" x="131" y="137">Convert type of attribute &amp;quot;No of Siblings or Spouses on Board&amp;quot; to boolean</description>
+          <description align="left" color="yellow" colored="false" height="70" resized="false" width="188" x="347" y="138">Convert type of attribute &amp;quot;No of Parents or Children on Board&amp;quot; to boolean</description>
+        </process>
+      </operator>
+      <operator activated="true" class="rule_induction" compatibility="9.10.001" expanded="true" height="82" name="Rule Induction" width="90" x="246" y="34">
+        <parameter key="criterion" value="information_gain"/>
+        <parameter key="sample_ratio" value="0.5"/>
+        <parameter key="pureness" value="1.0"/>
+        <parameter key="minimal_prune_benefit" value="0.8"/>
+        <parameter key="use_local_random_seed" value="false"/>
+        <parameter key="local_random_seed" value="1992"/>
+      </operator>
+      <operator activated="true" class="apply_model" compatibility="9.10.001" expanded="true" height="82" name="Apply Model" width="90" x="313" y="238">
+        <list key="application_parameters"/>
+        <parameter key="create_view" value="false"/>
+      </operator>
+      <operator activated="true" class="performance" compatibility="9.10.001" expanded="true" height="82" name="Performance" width="90" x="447" y="34">
+        <parameter key="use_example_weights" value="true"/>
+      </operator>
+      <connect from_op="Data Preprocessing" from_port="output 1" to_op="Rule Induction" to_port="training set"/>
+      <connect from_op="Data Preprocessing" from_port="output 2" to_op="Apply Model" to_port="unlabelled data"/>
+      <connect from_op="Rule Induction" from_port="model" to_op="Apply Model" to_port="model"/>
+      <connect from_op="Apply Model" from_port="labelled data" to_op="Performance" to_port="labelled data"/>
+      <connect from_op="Apply Model" from_port="model" to_port="result 3"/>
+      <connect from_op="Performance" from_port="performance" to_port="result 1"/>
+      <connect from_op="Performance" from_port="example set" to_port="result 2"/>
+      <portSpacing port="source_input 1" spacing="0"/>
+      <portSpacing port="sink_result 1" spacing="0"/>
+      <portSpacing port="sink_result 2" spacing="0"/>
+      <portSpacing port="sink_result 3" spacing="0"/>
+      <portSpacing port="sink_result 4" spacing="0"/>
+    </process>
+  </operator>
+</process>
